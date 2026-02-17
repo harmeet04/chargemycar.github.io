@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Charge My Car — Smart EV Charging Companion</title>
+  <meta name="description" content="Find EV charging stations, plan smart routes, earn rewards, and get AI-powered charging assistance. The ultimate companion for electric vehicle drivers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800;900&family=Satoshi:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ====== CSS VARIABLES ====== */
+    :root {
+      --bg-primary: #07080D;
+      --bg-secondary: #0D0F18;
+      --bg-card: #111422;
+      --bg-card-hover: #171B2E;
+      --accent-blue: #4C6EF5;
+      --accent-cyan: #22D3EE;
+      --accent-green: #10B981;
+      --accent-amber: #F59E0B;
+      --accent-purple: #A855F7;
+      --text-primary: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --border-color: rgba(255,255,255,0.06);
+      --glow-blue: rgba(76,110,245,0.25);
+      --glow-cyan: rgba(34,211,238,0.2);
+      --glow-green: rgba(16,185,129,0.2);
+    }
+
+    /* ====== RESET ====== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: 'Satoshi', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    /* ====== GLOBAL NOISE TEXTURE ====== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ====== HEADINGS ====== */
+    h1, h2, h3, h4, h5 { font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800; line-height: 1.1; }
+
+    /* ====== CONTAINER ====== */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* ====== UTILITY ====== */
+    .gradient-text {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .gradient-text-warm {
+      background: linear-gradient(135deg, var(--accent-amber), #EF4444);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ====== ANIMATED GRID BACKGROUND ====== */
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(76,110,245,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(76,110,245,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, black 30%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, black 30%, transparent 100%);
+    }
+
+    /* ====== NAVIGATION ====== */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 16px 0;
+      transition: background 0.3s, backdrop-filter 0.3s;
+    }
+    .nav.scrolled {
+      background: rgba(7,8,13,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+    .nav-logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-cta {
+      padding: 10px 22px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-blue), #3B5BDB);
+      color: #fff !important;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .nav-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 30px var(--glow-blue);
+    }
+    .mobile-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    /* ====== HERO SECTION ====== */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 120px 0 80px;
+      overflow: hidden;
+    }
+    .hero-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.4;
+      animation: orbFloat 8s ease-in-out infinite;
+    }
+    .hero-orb-1 {
+      width: 500px; height: 500px;
+      background: var(--accent-blue);
+      top: -15%; right: -10%;
+      animation-delay: 0s;
+    }
+    .hero-orb-2 {
+      width: 350px; height: 350px;
+      background: var(--accent-cyan);
+      bottom: 10%; left: -8%;
+      animation-delay: -3s;
+    }
+    .hero-orb-3 {
+      width: 200px; height: 200px;
+      background: var(--accent-purple);
+      top: 40%; left: 30%;
+      animation-delay: -5s;
+    }
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -20px) scale(1.05); }
+      66% { transform: translate(-20px, 15px) scale(0.95); }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px 6px 8px;
+      background: rgba(76,110,245,0.1);
+      border: 1px solid rgba(76,110,245,0.2);
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s ease-out both;
+    }
+    .hero-badge-dot {
+      width: 8px; height: 8px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .hero h1 {
+      font-size: clamp(2.8rem, 5.5vw, 4.5rem);
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s 0.1s ease-out both;
+    }
+    .hero-desc {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      max-width: 520px;
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s 0.2s ease-out both;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      animation: fadeUp 0.6s 0.3s ease-out both;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, var(--accent-blue), #3B5BDB);
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-family: 'Satoshi', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px var(--glow-blue);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 32px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      color: var(--text-primary);
+      font-family: 'Satoshi', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    /* Hero phone mockup */
+    .hero-visual {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      animation: fadeUp 0.8s 0.4s ease-out both;
+    }
+    .phone-mockup {
+      width: 280px;
+      height: 580px;
+      background: var(--bg-card);
+      border-radius: 40px;
+      border: 2px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+      box-shadow:
+        0 40px 100px rgba(0,0,0,0.5),
+        0 0 80px var(--glow-blue),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+      position: relative;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 28px;
+      background: #000;
+      border-radius: 0 0 20px 20px;
+      z-index: 5;
+    }
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #0A1628 0%, #0F1A30 50%, #0A1628 100%);
+      padding: 40px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .phone-map {
+      flex: 1;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 60% 40%, rgba(76,110,245,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 30% 70%, rgba(34,211,238,0.1) 0%, transparent 50%),
+        linear-gradient(135deg, #0D1B2A, #1B2838);
+      position: relative;
+      overflow: hidden;
+    }
+    /* Map grid lines */
+    .phone-map::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(76,110,245,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(76,110,245,0.08) 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+    /* Map road lines */
+    .phone-map::after {
+      content: '';
+      position: absolute;
+      top: 35%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+    }
+    .map-pin {
+      position: absolute;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      animation: pinPulse 2s ease-in-out infinite;
+    }
+    @keyframes pinPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(76,110,245,0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(76,110,245,0); }
+    }
+    .map-pin-1 { background: var(--accent-green); top: 30%; left: 25%; animation-delay: 0s; }
+    .map-pin-2 { background: var(--accent-blue); top: 50%; left: 55%; animation-delay: 0.5s; }
+    .map-pin-3 { background: var(--accent-green); top: 65%; left: 35%; animation-delay: 1s; }
+    .map-pin-4 { background: var(--accent-amber); top: 40%; left: 70%; animation-delay: 1.5s; }
+    .map-pin-user {
+      position: absolute;
+      width: 16px; height: 16px;
+      background: var(--accent-blue);
+      border-radius: 50%;
+      top: 45%; left: 42%;
+      border: 3px solid #fff;
+      box-shadow: 0 0 20px var(--glow-blue);
+    }
+    .phone-bottom-bar {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0 4px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .phone-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 9px;
+      color: var(--text-muted);
+    }
+    .phone-nav-item.active { color: var(--accent-cyan); }
+    .phone-nav-icon {
+      width: 20px; height: 20px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+    }
+    .phone-nav-item.active .phone-nav-icon {
+      background: rgba(34,211,238,0.15);
+    }
+
+    /* Floating stat cards beside phone */
+    .float-card {
+      position: absolute;
+      padding: 14px 18px;
+      background: rgba(17,20,34,0.9);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: floatCard 4s ease-in-out infinite;
+    }
+    .float-card-1 {
+      top: 15%;
+      right: -30px;
+      animation-delay: 0s;
+    }
+    .float-card-2 {
+      bottom: 20%;
+      left: -40px;
+      animation-delay: -2s;
+    }
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .float-card-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .float-card-value {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 1.3rem;
+    }
+
+    /* Hero stat row */
+    .hero-stats {
+      display: flex;
+      gap: 40px;
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border-color);
+      animation: fadeUp 0.6s 0.5s ease-out both;
+    }
+    .hero-stat-value {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 1.6rem;
+    }
+    .hero-stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ====== FEATURES SECTION ====== */
+    .features {
+      padding: 120px 0;
+      position: relative;
+    }
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-cyan);
+      margin-bottom: 16px;
+    }
+    .section-label-line {
+      width: 24px;
+      height: 2px;
+      background: var(--accent-cyan);
+      border-radius: 2px;
+    }
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin-bottom: 64px;
+    }
+
+    /* Feature grid — bento layout */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: auto;
+      gap: 20px;
+    }
+    .bento-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+    }
+    .bento-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255,255,255,0.1);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .bento-card.span-2 { grid-column: span 2; }
+    .bento-card.span-row-2 { grid-row: span 2; }
+
+    .bento-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .bento-icon-blue { background: rgba(76,110,245,0.12); }
+    .bento-icon-cyan { background: rgba(34,211,238,0.12); }
+    .bento-icon-green { background: rgba(16,185,129,0.12); }
+    .bento-icon-amber { background: rgba(245,158,11,0.12); }
+    .bento-icon-purple { background: rgba(168,85,247,0.12); }
+    .bento-icon-red { background: rgba(239,68,68,0.12); }
+
+    .bento-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-family: 'Cabinet Grotesk', sans-serif;
+    }
+    .bento-desc {
+      font-size: 0.925rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    /* Card decorative glow */
+    .bento-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .bento-card:hover::before { opacity: 1; }
+    .bento-card.glow-blue::before { background: var(--accent-blue); }
+    .bento-card.glow-cyan::before { background: var(--accent-cyan); }
+    .bento-card.glow-green::before { background: var(--accent-green); }
+    .bento-card.glow-amber::before { background: var(--accent-amber); }
+    .bento-card.glow-purple::before { background: var(--accent-purple); }
+
+    /* Mini visual demos inside cards */
+    .card-visual {
+      margin-top: 24px;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .mini-map-demo {
+      height: 160px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(76,110,245,0.1) 0%, transparent 60%),
+        linear-gradient(135deg, #0D1B2A, #1B2838);
+      position: relative;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+    .mini-route-line {
+      position: absolute;
+      top: 25%;
+      left: 15%;
+      width: 70%;
+      height: 50%;
+      border: 2px dashed rgba(76,110,245,0.3);
+      border-radius: 0 40px 40px 0;
+      border-left: none;
+    }
+    .mini-dot {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+    .mini-dot-start { background: var(--accent-blue); top: 25%; left: 15%; }
+    .mini-dot-end { background: var(--accent-green); bottom: 25%; left: 15%; }
+    .mini-dot-mid { background: var(--accent-amber); top: 25%; right: 15%; }
+
+    .ai-chat-demo {
+      background: rgba(0,0,0,0.3);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+    .ai-bubble {
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      max-width: 85%;
+    }
+    .ai-bubble-user {
+      background: rgba(76,110,245,0.15);
+      color: var(--text-primary);
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+    .ai-bubble-bot {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-secondary);
+      border-bottom-left-radius: 4px;
+    }
+
+    .coins-demo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(245,158,11,0.06);
+      border: 1px solid rgba(245,158,11,0.12);
+      border-radius: 14px;
+    }
+    .coins-icon { font-size: 2rem; }
+    .coins-amount {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--accent-amber);
+    }
+    .coins-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* ====== HOW IT WORKS ====== */
+    .how-it-works {
+      padding: 120px 0;
+      position: relative;
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      margin-top: 64px;
+    }
+    .step-card {
+      text-align: center;
+      position: relative;
+    }
+    .step-number {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 1.3rem;
+      margin: 0 auto 20px;
+    }
+    .step-card h4 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+    .step-card p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    .step-connector {
+      position: absolute;
+      top: 28px;
+      left: calc(50% + 36px);
+      width: calc(100% - 72px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-blue), transparent);
+      opacity: 0.3;
+    }
+    .step-card:last-child .step-connector { display: none; }
+
+    /* ====== AI SECTION ====== */
+    .ai-section {
+      padding: 120px 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .ai-section::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%);
+    }
+    .ai-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+    .ai-features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 32px;
+    }
+    .ai-feature-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .ai-feature-icon {
+      width: 40px; height: 40px;
+      min-width: 40px;
+      border-radius: 10px;
+      background: rgba(168,85,247,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .ai-feature-text h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .ai-feature-text p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .ai-demo-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.3);
+    }
+    .ai-demo-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+    .ai-demo-avatar {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .ai-demo-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .ai-demo-status {
+      font-size: 0.75rem;
+      color: var(--accent-green);
+    }
+    .ai-demo-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .ai-msg {
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      max-width: 90%;
+    }
+    .ai-msg-user {
+      background: linear-gradient(135deg, var(--accent-blue), #3B5BDB);
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-right-radius: 6px;
+    }
+    .ai-msg-bot {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-secondary);
+      border-bottom-left-radius: 6px;
+    }
+    .ai-msg-bot strong { color: var(--text-primary); }
+    .ai-typing {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 16px;
+      width: fit-content;
+      border-bottom-left-radius: 6px;
+    }
+    .ai-typing-dot {
+      width: 6px; height: 6px;
+      background: var(--text-muted);
+      border-radius: 50%;
+      animation: typingBounce 1.4s ease-in-out infinite;
+    }
+    .ai-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .ai-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    /* ====== GAMIFICATION SECTION ====== */
+    .gamification {
+      padding: 120px 0;
+      position: relative;
+    }
+    .gamification-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 64px;
+    }
+    .gamify-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 32px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .gamify-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(245,158,11,0.2);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .gamify-emoji {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+    .gamify-card h4 {
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+    }
+    .gamify-card p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    .gamify-reward {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 14px;
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-amber);
+    }
+
+    /* ====== COMMUNITY SECTION ====== */
+    .community {
+      padding: 120px 0;
+      position: relative;
+    }
+    .community-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .community-feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-top: 32px;
+    }
+    .community-feature {
+      display: flex;
+      gap: 16px;
+    }
+    .community-feature-dot {
+      width: 12px;
+      height: 12px;
+      min-width: 12px;
+      border-radius: 50%;
+      margin-top: 6px;
+    }
+    .community-feature h4 { font-size: 1rem; margin-bottom: 4px; }
+    .community-feature p { font-size: 0.85rem; color: var(--text-secondary); }
+
+    .community-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .community-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      transition: all 0.3s;
+    }
+    .community-card:hover {
+      background: var(--bg-card-hover);
+      transform: translateX(4px);
+    }
+    .community-card-icon {
+      width: 48px;
+      height: 48px;
+      min-width: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .community-card h4 { font-size: 0.95rem; margin-bottom: 4px; }
+    .community-card p { font-size: 0.8rem; color: var(--text-secondary); }
+
+    /* ====== CTA SECTION ====== */
+    .cta-section {
+      padding: 120px 0 80px;
+      text-align: center;
+      position: relative;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(76,110,245,0.15) 0%, transparent 70%);
+    }
+    .cta-box {
+      position: relative;
+      z-index: 2;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .cta-box h2 {
+      font-size: clamp(2.2rem, 4vw, 3.2rem);
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .cta-box p {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+    }
+    .store-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+    .store-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 28px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      transition: all 0.2s;
+    }
+    .store-btn:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+    .store-btn-icon { font-size: 1.5rem; }
+    .store-btn-text { text-align: left; }
+    .store-btn-label { font-size: 0.65rem; color: var(--text-muted); }
+    .store-btn-name { font-weight: 700; font-size: 1rem; }
+
+    /* ====== FOOTER ====== */
+    .footer {
+      padding: 60px 0 30px;
+      border-top: 1px solid var(--border-color);
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+    .footer-brand p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-top: 12px;
+      max-width: 300px;
+    }
+    .footer-col h5 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .footer-col a {
+      display: block;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      padding: 6px 0;
+      transition: color 0.2s;
+    }
+    .footer-col a:hover { color: var(--text-primary); }
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .footer-socials { display: flex; gap: 16px; }
+    .footer-socials a {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+    .footer-socials a:hover {
+      background: rgba(255,255,255,0.08);
+      transform: translateY(-2px);
+    }
+
+    /* ====== SCROLL ANIMATIONS ====== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.7s cubic-bezier(0.4,0,0.2,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    /* ====== RESPONSIVE ====== */
+    @media (max-width: 1024px) {
+      .hero-content { grid-template-columns: 1fr; text-align: center; }
+      .hero-desc { margin-left: auto; margin-right: auto; }
+      .hero-actions { justify-content: center; }
+      .hero-stats { justify-content: center; }
+      .hero-visual { margin-top: 40px; }
+      .float-card { display: none; }
+      .bento-grid { grid-template-columns: repeat(2, 1fr); }
+      .bento-card.span-2 { grid-column: span 2; }
+      .steps-grid { grid-template-columns: repeat(2, 1fr); }
+      .step-connector { display: none; }
+      .ai-content, .community-content { grid-template-columns: 1fr; gap: 40px; }
+      .footer-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .mobile-toggle { display: block; }
+      .hero { padding: 100px 0 60px; min-height: auto; }
+      .hero h1 { font-size: 2.2rem; }
+      .bento-grid { grid-template-columns: 1fr; }
+      .bento-card.span-2 { grid-column: span 1; }
+      .gamification-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .hero-stats { flex-direction: column; gap: 16px; align-items: center; }
+      .hero-actions { flex-direction: column; }
+      .store-buttons { flex-direction: column; align-items: center; }
+      .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+      .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
+      .features, .how-it-works, .ai-section, .gamification, .community, .cta-section { padding: 80px 0; }
+    }
+
+    /* ====== MOBILE NAV MENU ====== */
+    .mobile-menu {
+      position: fixed;
+      inset: 0;
+      background: rgba(7,8,13,0.96);
+      backdrop-filter: blur(20px);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .mobile-menu.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .mobile-menu a {
+      font-family: 'Cabinet Grotesk', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      transition: color 0.2s;
+    }
+    .mobile-menu a:hover { color: var(--text-primary); }
+    .mobile-menu-close {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: 2rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ====== NAVIGATION ====== -->
+  <nav class="nav" id="nav">
+    <div class="container nav-inner">
+      <a href="#" class="nav-logo">
+        <div class="nav-logo-icon">⚡</div>
+        <span>Charge My Car</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#ai-assistant">AI Assistant</a></li>
+        <li><a href="#rewards">Rewards</a></li>
+        <li><a href="#community">Community</a></li>
+        <li><a href="#download" class="nav-cta">Download App</a></li>
+      </ul>
+      <button class="mobile-toggle" onclick="toggleMobileMenu()" aria-label="Menu">☰</button>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <button class="mobile-menu-close" onclick="toggleMobileMenu()">✕</button>
+    <a href="#features" onclick="toggleMobileMenu()">Features</a>
+    <a href="#ai-assistant" onclick="toggleMobileMenu()">AI Assistant</a>
+    <a href="#rewards" onclick="toggleMobileMenu()">Rewards</a>
+    <a href="#community" onclick="toggleMobileMenu()">Community</a>
+    <a href="#download" onclick="toggleMobileMenu()">Download</a>
+  </div>
+
+  <!-- ====== HERO ====== -->
+  <section class="hero">
+    <div class="grid-bg"></div>
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+
+    <div class="container hero-content">
+      <div class="hero-text">
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          Available on Android
+        </div>
+        <h1>Find. Charge.<br/><span class="gradient-text">Drive&nbsp;Further.</span></h1>
+        <p class="hero-desc">The smartest EV charging companion that finds nearby stations, plans range-optimized routes, and rewards you with every charge. Powered by AI, built for the road.</p>
+        <div class="hero-actions">
+          <a href="#download" class="btn-primary">
+            <span>▶</span> Download Free
+          </a>
+          <a href="#features" class="btn-secondary">
+            <span>↓</span> Explore Features
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-value gradient-text">50K+</div>
+            <div class="hero-stat-label">Charging Stations</div>
+          </div>
+          <div>
+            <div class="hero-stat-value gradient-text">Real-time</div>
+            <div class="hero-stat-label">Live Availability</div>
+          </div>
+          <div>
+            <div class="hero-stat-value gradient-text">AI</div>
+            <div class="hero-stat-label">Smart Assistant</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="phone-mockup">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="phone-map">
+              <div class="map-pin map-pin-1"></div>
+              <div class="map-pin map-pin-2"></div>
+              <div class="map-pin map-pin-3"></div>
+              <div class="map-pin map-pin-4"></div>
+              <div class="map-pin-user"></div>
+            </div>
+            <div class="phone-bottom-bar">
+              <div class="phone-nav-item active">
+                <div class="phone-nav-icon"></div>
+                <span>Map</span>
+              </div>
+              <div class="phone-nav-item">
+                <div class="phone-nav-icon"></div>
+                <span>Route</span>
+              </div>
+              <div class="phone-nav-item">
+                <div class="phone-nav-icon"></div>
+                <span>AI Chat</span>
+              </div>
+              <div class="phone-nav-item">
+                <div class="phone-nav-icon"></div>
+                <span>Profile</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Cards -->
+        <div class="float-card float-card-1">
+          <div class="float-card-label">Nearest Station</div>
+          <div class="float-card-value" style="color: var(--accent-green);">0.8 km</div>
+        </div>
+        <div class="float-card float-card-2">
+          <div class="float-card-label">Volt Coins</div>
+          <div class="float-card-value" style="color: var(--accent-amber);">⚡ 1,250</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== FEATURES BENTO GRID ====== -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="reveal">
+        <div class="section-label">
+          <span class="section-label-line"></span>
+          Core Features
+        </div>
+        <h2 class="section-title">Everything you need,<br/><span class="gradient-text">one app.</span></h2>
+        <p class="section-desc">From finding the nearest charger to predicting the best time to charge — Charge My Car handles it all with intelligence and style.</p>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Card 1: Live Map -->
+        <div class="bento-card span-2 glow-blue reveal">
+          <div class="bento-icon bento-icon-blue">🗺️</div>
+          <div class="bento-title">Interactive Live Map</div>
+          <div class="bento-desc">Discover thousands of EV charging stations near you with real-time availability. Color-coded pins show status at a glance — green for available, amber for busy, red for offline. Night mode adapts to your drive.</div>
+          <div class="card-visual">
+            <div class="mini-map-demo">
+              <div class="mini-dot mini-dot-start"></div>
+              <div class="mini-dot mini-dot-end"></div>
+              <div class="mini-dot mini-dot-mid"></div>
+              <div class="mini-route-line"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Range Monitor -->
+        <div class="bento-card glow-cyan reveal reveal-delay-1">
+          <div class="bento-icon bento-icon-cyan">🕷️</div>
+          <div class="bento-title">Range Monitor</div>
+          <div class="bento-desc">The "Spider" tracks your real-time range on the map as you drive. Visualize exactly how far you can go with your current battery, overlaid directly on your route.</div>
+        </div>
+
+        <!-- Card 3: Smart Route Planning -->
+        <div class="bento-card glow-green reveal reveal-delay-1">
+          <div class="bento-icon bento-icon-green">🛣️</div>
+          <div class="bento-title">Smart Route Planning</div>
+          <div class="bento-desc">Enter your destination and vehicle range. The app calculates the optimal route with charging stops, accounting for real-time weather conditions that affect battery drain.</div>
+        </div>
+
+        <!-- Card 4: AI Assistant -->
+        <div class="bento-card glow-purple reveal reveal-delay-2">
+          <div class="bento-icon bento-icon-purple">✨</div>
+          <div class="bento-title">AI Assistant</div>
+          <div class="bento-desc">Ask anything about EV charging in natural language. Get personalized recommendations, charging tips, and cost estimates. Supports voice input and text-to-speech.</div>
+          <div class="card-visual">
+            <div class="ai-chat-demo">
+              <div class="ai-bubble ai-bubble-user">Where should I charge near me?</div>
+              <div class="ai-bubble ai-bubble-bot">I found <strong>3 stations</strong> within 2 km with fast chargers available right now. The closest one has a 4.8★ rating!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Charging Time Predictor -->
+        <div class="bento-card span-2 glow-amber reveal reveal-delay-2">
+          <div class="bento-icon bento-icon-amber">⏱️</div>
+          <div class="bento-title">Charging Time Predictor</div>
+          <div class="bento-desc">AI analyzes historical check-in data to predict crowd levels at every station throughout the day. Know exactly when the best time to charge is — avoid rush hour queues and charge smarter. See hourly breakdowns from "empty" to "very busy" for any station.</div>
+          <div style="display:flex; gap:6px; margin-top:20px; align-items:flex-end;">
+            <div style="flex:1; height:20px; background:rgba(16,185,129,0.3); border-radius:6px 6px 0 0;" title="6AM Empty"></div>
+            <div style="flex:1; height:30px; background:rgba(16,185,129,0.5); border-radius:6px 6px 0 0;" title="7AM Low"></div>
+            <div style="flex:1; height:50px; background:rgba(245,158,11,0.5); border-radius:6px 6px 0 0;" title="8AM Moderate"></div>
+            <div style="flex:1; height:70px; background:rgba(239,68,68,0.5); border-radius:6px 6px 0 0;" title="9AM Busy"></div>
+            <div style="flex:1; height:50px; background:rgba(245,158,11,0.5); border-radius:6px 6px 0 0;" title="10AM"></div>
+            <div style="flex:1; height:40px; background:rgba(245,158,11,0.4); border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1; height:45px; background:rgba(245,158,11,0.4); border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1; height:40px; background:rgba(245,158,11,0.4); border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1; height:25px; background:rgba(16,185,129,0.4); border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1; height:20px; background:rgba(16,185,129,0.3); border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1; height:45px; background:rgba(245,158,11,0.4); border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1; height:80px; background:rgba(239,68,68,0.6); border-radius:6px 6px 0 0;" title="5PM Rush"></div>
+            <div style="flex:1; height:90px; background:rgba(239,68,68,0.7); border-radius:6px 6px 0 0;" title="6PM Peak"></div>
+            <div style="flex:1; height:65px; background:rgba(239,68,68,0.4); border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1; height:40px; background:rgba(245,158,11,0.4); border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1; height:25px; background:rgba(16,185,129,0.4); border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1; height:15px; background:rgba(16,185,129,0.2); border-radius:6px 6px 0 0;"></div>
+            <div style="flex:1; height:10px; background:rgba(16,185,129,0.15); border-radius:6px 6px 0 0;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:0.7rem; color:var(--text-muted);">
+            <span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span>
+          </div>
+        </div>
+
+        <!-- Card 6: Smart Recommendations -->
+        <div class="bento-card glow-green reveal reveal-delay-3">
+          <div class="bento-icon bento-icon-green">🎯</div>
+          <div class="bento-title">Smart Recommendations</div>
+          <div class="bento-desc">AI scores stations based on distance, ratings, live availability, price, amenities, and your personal history. Get the perfect station every time — tailored to you.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== HOW IT WORKS ====== -->
+  <section class="how-it-works">
+    <div class="container">
+      <div class="reveal" style="text-align:center;">
+        <div class="section-label" style="justify-content:center;">
+          <span class="section-label-line"></span>
+          How It Works
+        </div>
+        <h2 class="section-title">Start charging in <span class="gradient-text">4 steps</span></h2>
+        <p class="section-desc" style="margin-left:auto; margin-right:auto;">No setup headaches — just download, open the map, and go.</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card reveal">
+          <div class="step-number">1</div>
+          <div class="step-connector"></div>
+          <h4>Open the Map</h4>
+          <p>Automatically detects your location and shows nearby charging stations in real-time.</p>
+        </div>
+        <div class="step-card reveal reveal-delay-1">
+          <div class="step-number">2</div>
+          <div class="step-connector"></div>
+          <h4>Pick a Station</h4>
+          <p>View charger types, power output, ratings, availability, and community reports.</p>
+        </div>
+        <div class="step-card reveal reveal-delay-2">
+          <div class="step-number">3</div>
+          <div class="step-connector"></div>
+          <h4>Navigate & Charge</h4>
+          <p>One-tap navigation to the station. Start charging and track your session in the app.</p>
+        </div>
+        <div class="step-card reveal reveal-delay-3">
+          <div class="step-number">4</div>
+          <div class="step-connector"></div>
+          <h4>Review & Earn</h4>
+          <p>Rate the station, add photos, report amenities — earn Volt Coins for every contribution.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== AI ASSISTANT ====== -->
+  <section class="ai-section" id="ai-assistant">
+    <div class="container ai-content">
+      <div class="reveal">
+        <div class="section-label">
+          <span class="section-label-line"></span>
+          AI-Powered
+        </div>
+        <h2 class="section-title">Your personal<br/><span style="background:linear-gradient(135deg, var(--accent-purple), var(--accent-cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">charging copilot</span></h2>
+        <p style="color:var(--text-secondary); font-size:1.05rem; max-width:480px;">Powered by Google Gemini, the AI assistant knows your location, vehicle, and charging preferences to give you hyper-personalized answers.</p>
+
+        <div class="ai-features-list">
+          <div class="ai-feature-item">
+            <div class="ai-feature-icon">🎤</div>
+            <div class="ai-feature-text">
+              <h4>Voice Input & Output</h4>
+              <p>Ask questions hands-free while driving. The assistant speaks responses back to you.</p>
+            </div>
+          </div>
+          <div class="ai-feature-item">
+            <div class="ai-feature-icon">📍</div>
+            <div class="ai-feature-text">
+              <h4>Location-Aware</h4>
+              <p>Automatically uses your GPS context to give relevant station suggestions and directions.</p>
+            </div>
+          </div>
+          <div class="ai-feature-item">
+            <div class="ai-feature-icon">💡</div>
+            <div class="ai-feature-text">
+              <h4>Smart Suggestions</h4>
+              <p>Quick-tap prompts for common questions — cost estimates, charger types, best routes, and more.</p>
+            </div>
+          </div>
+          <div class="ai-feature-item">
+            <div class="ai-feature-icon">💬</div>
+            <div class="ai-feature-text">
+              <h4>Conversation Memory</h4>
+              <p>Remembers your chat history so you can pick up where you left off between sessions.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal reveal-delay-2">
+        <div class="ai-demo-card">
+          <div class="ai-demo-header">
+            <div class="ai-demo-avatar">✨</div>
+            <div>
+              <div class="ai-demo-name">EV Assistant</div>
+              <div class="ai-demo-status">● Online</div>
+            </div>
+          </div>
+          <div class="ai-demo-messages">
+            <div class="ai-msg ai-msg-user">I'm at 30% battery and need to reach Jaipur. What should I do?</div>
+            <div class="ai-msg ai-msg-bot">Based on your current location, I'd recommend stopping at <strong>Tata Power Station on NH-48</strong> (12 km ahead). It has 60kW DC fast chargers, is rated <strong>4.7★</strong>, and is currently <strong>not busy</strong>. A 25-minute charge should get you to Jaipur comfortably! ⚡</div>
+            <div class="ai-msg ai-msg-user">What's the cost estimate?</div>
+            <div class="ai-msg ai-msg-bot">At ₹15/kWh, charging from 30% to 80% on a 40kWh battery would cost approximately <strong>₹300</strong>. The station also has a <strong>café and restrooms</strong> nearby — perfect for a break! ☕</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== GAMIFICATION ====== -->
+  <section class="gamification" id="rewards">
+    <div class="container">
+      <div class="reveal" style="text-align:center;">
+        <div class="section-label" style="justify-content:center;">
+          <span class="section-label-line"></span>
+          Volt Coins
+        </div>
+        <h2 class="section-title">Charge. Earn. <span class="gradient-text-warm">Unlock.</span></h2>
+        <p class="section-desc" style="margin-left:auto; margin-right:auto;">Every action earns Volt Coins — a gamified reward system that makes EV charging fun. Spend coins to unlock premium features or climb the leaderboards.</p>
+      </div>
+
+      <div class="gamification-grid">
+        <div class="gamify-card reveal">
+          <div class="gamify-emoji">📍</div>
+          <h4>Check-in Rewards</h4>
+          <p>Check in at a charging station and earn coins. Add a photo or review for bonus rewards.</p>
+          <div class="gamify-reward">+25 to +50 coins</div>
+        </div>
+        <div class="gamify-card reveal reveal-delay-1">
+          <div class="gamify-emoji">🔥</div>
+          <h4>Daily Streaks</h4>
+          <p>Log in every day to earn a daily bonus. Keep your streak alive for escalating rewards — 3-day, 7-day, and beyond.</p>
+          <div class="gamify-reward">Up to 2x bonus</div>
+        </div>
+        <div class="gamify-card reveal reveal-delay-2">
+          <div class="gamify-emoji">👑</div>
+          <h4>Station Mayor</h4>
+          <p>The most active user at any station becomes its "Mayor" — a badge of honor visible to the whole community.</p>
+          <div class="gamify-reward">Bragging rights</div>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:48px;" class="reveal">
+        <div class="coins-demo" style="display:inline-flex; margin:0 auto;">
+          <div class="coins-icon">⚡</div>
+          <div>
+            <div class="coins-amount">1,250 <span style="font-size:0.8rem; font-weight:500; color:var(--text-muted);">Volt Coins</span></div>
+            <div class="coins-label">Spend on AI queries, route plans, and premium features</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== COMMUNITY ====== -->
+  <section class="community" id="community">
+    <div class="container community-content">
+      <div class="reveal">
+        <div class="section-label">
+          <span class="section-label-line"></span>
+          Community
+        </div>
+        <h2 class="section-title">Driven by <span class="gradient-text">real&nbsp;drivers</span></h2>
+        <p style="color:var(--text-secondary); font-size:1.05rem; max-width:480px;">Crowdsourced data from the EV community keeps station info accurate and up-to-date. Report issues, mark amenities, and help fellow drivers.</p>
+
+        <div class="community-feature-list">
+          <div class="community-feature">
+            <div class="community-feature-dot" style="background: var(--accent-green);"></div>
+            <div>
+              <h4>Live Occupancy Reports</h4>
+              <p>See how many people are currently charging at any station, updated in real-time by community check-ins.</p>
+            </div>
+          </div>
+          <div class="community-feature">
+            <div class="community-feature-dot" style="background: var(--accent-amber);"></div>
+            <div>
+              <h4>Status Flags</h4>
+              <p>Drivers can flag stations as "ICEd" (blocked) or "broken" so others know to avoid them — saving everyone time.</p>
+            </div>
+          </div>
+          <div class="community-feature">
+            <div class="community-feature-dot" style="background: var(--accent-blue);"></div>
+            <div>
+              <h4>Ratings & Photos</h4>
+              <p>Star ratings, written reviews, and real photos from drivers give you the full picture before you arrive.</p>
+            </div>
+          </div>
+          <div class="community-feature">
+            <div class="community-feature-dot" style="background: var(--accent-purple);"></div>
+            <div>
+              <h4>Amenity Tags</h4>
+              <p>Know what's nearby — cafés, restrooms, Wi-Fi, shopping — all tagged by fellow EV drivers.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="community-cards reveal reveal-delay-2">
+        <div class="community-card">
+          <div class="community-card-icon" style="background:rgba(16,185,129,0.1);">📸</div>
+          <div>
+            <h4>Photo Reviews</h4>
+            <p>Upload photos to earn +15 coins and help the community see what stations look like before visiting.</p>
+          </div>
+        </div>
+        <div class="community-card">
+          <div class="community-card-icon" style="background:rgba(239,68,68,0.1);">🚫</div>
+          <div>
+            <h4>Report ICEd Stations</h4>
+            <p>Found a charger blocked by a non-EV vehicle? Flag it so other drivers get warned instantly.</p>
+          </div>
+        </div>
+        <div class="community-card">
+          <div class="community-card-icon" style="background:rgba(245,158,11,0.1);">⭐</div>
+          <div>
+            <h4>Star Ratings</h4>
+            <p>Rate stations from 1 to 5 stars and add a safety rating. Your feedback helps everyone charge safer.</p>
+          </div>
+        </div>
+        <div class="community-card">
+          <div class="community-card-icon" style="background:rgba(168,85,247,0.1);">🏆</div>
+          <div>
+            <h4>Premium Benefits</h4>
+            <p>Go Premium for 3x coin earnings, unlimited AI queries, ad-free experience, and exclusive station badges.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== CTA ====== -->
+  <section class="cta-section" id="download">
+    <div class="container">
+      <div class="cta-box reveal">
+        <h2>Ready to drive <span class="gradient-text">electric?</span></h2>
+        <p>Join thousands of EV drivers who charge smarter, save time, and earn rewards on every trip.</p>
+        <div class="store-buttons">
+          <a href="#" class="store-btn">
+            <div class="store-btn-icon">▶</div>
+            <div class="store-btn-text">
+              <div class="store-btn-label">GET IT ON</div>
+              <div class="store-btn-name">Google Play</div>
+            </div>
+          </a>
+          <a href="#" class="store-btn">
+            <div class="store-btn-icon">🍎</div>
+            <div class="store-btn-text">
+              <div class="store-btn-label">COMING SOON ON</div>
+              <div class="store-btn-name">App Store</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== FOOTER ====== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="nav-logo" style="margin-bottom:4px;">
+            <div class="nav-logo-icon">⚡</div>
+            <span>Charge My Car</span>
+          </a>
+          <p>The smartest EV charging companion for India. Find stations, plan routes, earn rewards, and drive further with confidence.</p>
+        </div>
+        <div class="footer-col">
+          <h5>Product</h5>
+          <a href="#features">Features</a>
+          <a href="#ai-assistant">AI Assistant</a>
+          <a href="#rewards">Volt Coins</a>
+          <a href="#">Premium</a>
+        </div>
+        <div class="footer-col">
+          <h5>Resources</h5>
+          <a href="#">FAQ</a>
+          <a href="#">EV Charging Guide</a>
+          <a href="#">Charger Types</a>
+          <a href="#">Blog</a>
+        </div>
+        <div class="footer-col">
+          <h5>Company</h5>
+          <a href="#">About Us</a>
+          <a href="#">Contact</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2025 Charge My Car. All rights reserved.</span>
+        <div class="footer-socials">
+          <a href="#" aria-label="Twitter">𝕏</a>
+          <a href="#" aria-label="Instagram">📷</a>
+          <a href="#" aria-label="GitHub">⌨</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ====== SCRIPTS ====== -->
+  <script>
+    // Nav scroll effect
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+    });
+
+    // Mobile menu
+    function toggleMobileMenu() {
+      document.getElementById('mobileMenu').classList.toggle('open');
+    }
+
+    // Scroll reveal
+    const revealElements = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    revealElements.forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>
